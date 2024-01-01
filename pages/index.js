@@ -1,18 +1,29 @@
 import Head from 'next/head';
 import Header from '@components/Header';
 import Footer from '@components/Footer';
-import { useState, createContext, useContext } from 'react';
+import { useState, createContext, useContext, useEffect } from 'react';
 
-// Crear un contexto para el estado global
 const AppStateContext = createContext();
 
-// Proveedor de contexto para envolver la aplicación
 const AppStateProvider = ({ children }) => {
   const [words, setWords] = useState([]);
+
+  useEffect(() => {
+    // Cargar las palabras almacenadas en el localStorage al inicio
+    const storedWords = localStorage.getItem('words');
+    if (storedWords) {
+      setWords(JSON.parse(storedWords));
+    }
+  }, []);
 
   const addWord = (word) => {
     setWords((prevWords) => [...prevWords, word]);
   };
+
+  useEffect(() => {
+    // Guardar las palabras en el localStorage cada vez que cambian
+    localStorage.setItem('words', JSON.stringify(words));
+  }, [words]);
 
   return (
     <AppStateContext.Provider value={{ words, addWord }}>
@@ -21,7 +32,6 @@ const AppStateProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para utilizar el contexto
 const useAppState = () => {
   const context = useContext(AppStateContext);
   if (!context) {
@@ -57,7 +67,6 @@ function HomePage() {
           Get started by editing <code>pages/index.js</code>
         </p>
 
-        {/* Formulario para ingresar la palabra */}
         <form onSubmit={handleFormSubmit}>
           <label>
             Ingresa una palabra:
@@ -66,7 +75,6 @@ function HomePage() {
           <button type="submit">Guardar palabra</button>
         </form>
 
-        {/* Mostrar la palabra ingresada */}
         {words.length > 0 && (
           <div>
             <h2>Palabras ingresadas:</h2>
@@ -84,7 +92,6 @@ function HomePage() {
   );
 }
 
-// Envolver la aplicación con el proveedor de contexto
 export default function AppWithState() {
   return (
     <AppStateProvider>
@@ -92,4 +99,3 @@ export default function AppWithState() {
     </AppStateProvider>
   );
 }
-
