@@ -1,9 +1,37 @@
 import Head from 'next/head';
 import Header from '@components/Header';
 import Footer from '@components/Footer';
-import { useState } from 'react';
+import { useState, createContext, useContext } from 'react';
 
-export default function HomePage() {
+// Crear un contexto para el estado global
+const AppStateContext = createContext();
+
+// Proveedor de contexto para envolver la aplicación
+const AppStateProvider = ({ children }) => {
+  const [words, setWords] = useState([]);
+
+  const addWord = (word) => {
+    setWords((prevWords) => [...prevWords, word]);
+  };
+
+  return (
+    <AppStateContext.Provider value={{ words, addWord }}>
+      {children}
+    </AppStateContext.Provider>
+  );
+};
+
+// Hook personalizado para utilizar el contexto
+const useAppState = () => {
+  const context = useContext(AppStateContext);
+  if (!context) {
+    throw new Error('useAppState must be used within an AppStateProvider');
+  }
+  return context;
+};
+
+function HomePage() {
+  const { words, addWord } = useAppState();
   const [userInput, setUserInput] = useState('');
 
   const handleInputChange = (e) => {
@@ -12,10 +40,8 @@ export default function HomePage() {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    // Aquí puedes realizar cualquier acción que desees con la palabra ingresada, por ejemplo, almacenarla en el estado o en algún otro lugar.
-
-    // En este ejemplo, simplemente mostraremos la palabra debajo del formulario.
-    alert(`Palabra ingresada: ${userInput}`);
+    addWord(userInput);
+    setUserInput('');
   };
 
   return (
@@ -26,7 +52,7 @@ export default function HomePage() {
       </Head>
 
       <main>
-        <Header title="Welcome to my app JAVIER!" />
+        <Header title="Welcome to my app!" />
         <p className="description">
           Get started by editing <code>pages/index.js</code>
         </p>
@@ -34,17 +60,36 @@ export default function HomePage() {
         {/* Formulario para ingresar la palabra */}
         <form onSubmit={handleFormSubmit}>
           <label>
-            Ingresa una palabra por favor:
+            Ingresa una palabra:
             <input type="text" value={userInput} onChange={handleInputChange} />
           </label>
           <button type="submit">Guardar palabra</button>
         </form>
 
         {/* Mostrar la palabra ingresada */}
-        {userInput && <p>Palabra ingresada: {userInput}</p>}
+        {words.length > 0 && (
+          <div>
+            <h2>Palabras ingresadas:</h2>
+            <ul>
+              {words.map((word, index) => (
+                <li key={index}>{word}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </main>
 
       <Footer />
     </div>
   );
 }
+
+// Envolver la aplicación con el proveedor de contexto
+export default function AppWithState() {
+  return (
+    <AppStateProvider>
+      <HomePage />
+    </AppStateProvider>
+  );
+}
+
