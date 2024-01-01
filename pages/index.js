@@ -34,7 +34,7 @@ export default function HomePage() {
         {/* Formulario para ingresar la palabra */}
         <form onSubmit={handleFormSubmit}>
           <label>
-            Ingresa una palabra:
+            Ingresa una palabra por favor:
             <input type="text" value={userInput} onChange={handleInputChange} />
           </label>
           <button type="submit">Guardar palabra</button>
